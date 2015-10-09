@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>1980's Film Tycoon Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="css/vendor/bootstrap.min.css" rel="stylesheet">
+    <link href="css/flat-ui.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="js/vendor/html5shiv.js"></script>
+      <script src="js/vendor/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <style>
+    body{
+      background-color: #fcfee9 ;
+      text-align: center;
+    }
+
+    #game{
+      width: 870px;
+      height: 600px;
+      background-color:#2c3e50;
+      font: Lato;
+    }
+
+    div .label {
+      display:inline-block;
+      padding-top:0;
+      padding-bottom:0;
+      line-height:1.5em;
+    }
+
+    span{
+      color: aliceblue;
+      font-family: Lato;
+    }
+
+    #introText{
+      position: relative;
+      margin-top: 100px;
+      font-size: 40px;
+    }
+
+    .btn-xlarge {
+    padding: 18px 28px;
+    font-size: 22px;
+    line-height: normal;
+    -webkit-border-radius: 8px;
+       -moz-border-radius: 8px;
+            border-radius: 8px;
+    }
+
+    #money{
+      margin: 20px;
+      text-align:right;
+      float:right;
+    }
+
+    .question{
+      margin-left: 20px;
+      margin-top:20px;
+      float:left;
+    }
+
+
+    input{
+      clear: both;
+      float:left;
+      margin-left: 20px;
+    }
+
+    textarea{
+      clear:both;
+    }
+
+    .people{
+      width: 150px;
+      height: 150px;
+      margin: 20px;
+    }
+
+    .checkbox{
+      margin:40px;
+      color:white;
+      width:200px;
+    }
+
+
+  </style>
+
+  <body>
+    <div class="container">
+
+		<div class="row">
+			<div class="col-md-4 col-md-offset-1" id="title">
+					<h1>1980's Film Tycoon</h1>
+			</div>
+
+            <div class="col-md-2 col-md-offset-3 score">
+                <h3><div class="label label-primary label-success" id="best">  High Score  <br> $0 M </div></h3>
+            </div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-9 col-md-offset-1">
+              <div id="game">
+                <br> <br>
+                <span id='introText'> You have <br> <b> $30,000,000 </b> <br> to make a blockbuster.<br> Good luck! </span>
+                <br>
+                <h1> <div id="begin" class="btn btn-xlarge btn-primary"> Begin! </div> </h1>
+
+              </div>
+			</div>
+		</div>
+		<br>
+	</div>
+
+
+    <script src="js/vendor/jquery.min.js"></script>
+    <script src="js/vendor/video.js"></script>
+    <script src="js/flat-ui.min.js"></script>
+    <script src="https://cdn.firebase.com/js/client/2.2.3/firebase.js"></script>
+
+    <script>
+      var game = $('#game')
+      var money = 30
+      var director;
+      var specialEffects;
+      var adTactics;
+
+      var url = "1980s.firebaseio.com/best"
+      var firebase = new Firebase(url);
+      var best;
+      var successFactor = 0;
+
+      firebase.on('value', function(snap, prevChildKey) {
+          if(snap.exists){
+            best = snap.val().best;
+            console.log(best);
+            $('#best').html("High Score <br> $" + best + " M");
+          }
+      });
+
+      firebase.on('child_changed', function(snap, prevChildKey) {
+          if(snap.exists){
+            best = snap.val().best;
+            $('#best').html("High Score <br> $" + best + " M")
+          }
+      });
+
+      $('#begin').click(function(){
+        game.html("<h3> <span id='money' class='label label-success' </span> </h3>");
+        info();
+      })
+
+      function info(){
+          s = "<div class='form-group'> \
+                  <span class='question'> What's your film called? </span> \
+                  <input class='form-control' style='width:300px' placeholder='Indiana Jones and The Blah'> </input>\
+                  <span class='question' style='clear:both; margin-bottom:20px;'> What's your film about? </span> \
+                  <textarea class='form-control' style='width:500px; height:350px; margin-top:20px; margin-left:20px;' placeholder='(optional)'></textarea>\
+                  <div style='position:relative;top:50%;bottom:50%;left:40%;right:60%;margin-top:-90px;'>\
+                    <img id='next' src='img/button.png' onclick='directors()'></div>\
+                  </div>\
+                </div>"
+          game.append(s.trim());
+      }
+
+      function uniqueRand(upperbound, number){
+        var arr = []
+        while(arr.length < number){
+        var randomnumber=Math.ceil(Math.random()*upperbound)
+        var found=false;
+        for(var i=0;i<arr.length;i++){
+        if(arr[i]==randomnumber){found=true;break}
+        }
+        if(!found)arr[arr.length]=randomnumber;
+        }
+        return arr
+      }
+
+      function directors() {
+        directorList = ["davidZucker.jpg", "irvinKershner.jpg", "jerryZucker.jpg", "jimAbrahams.jpg", "johnCarpenter.jpg", "martinScorsese.jpg", "ridleyScott.jpg", "stanleyKubrick.jpg", "stevenSpielberg.jpg"];
+        success = [8, 8, 6, 3, 10, 9, 9, 8, 10]
+        choices = uniqueRand(8, 3);
+
+        prices = [Math.round(Math.random()*100)/10 + 5, Math.round(Math.random()*100)/10 + 5, Math.round(Math.random()*100)/10 + 5];
+
+        game.html("<h3> <span id='money' class='label label-success' </span> </h3>");
+        $('#money').html('$'+money+' M');
+        game.append("<span class='question'> Pick Your Director </span>");
+
+        for(var i=0; i<3; i++){
+          game.append("<div onclick='chooseDirector( " + i + " )'> \
+                          <img class='people' src=img/directors/" + directorList[choices[i]] + "> </img> \
+                          <span>" + fixName(directorList[choices[i]]) + " </span> \
+                          <span> ($" + prices[i] + " M)</span> \
+                    </div>");
+        }
+
+      }
+
+      function chooseDirector(i){
+          money -= prices[i];
+          successFactor += 2*success[choices[i]]
+          specialEffects()
+        }
+
+
+        function specialEffects(){
+          effects = ["Multi-Track Dolby Stereo", "THX sound system", "70mm Magnetic Tapes", "Dolby Spectral Recording", "35mm magnetic Tapes"]
+
+          effectChoices = uniqueRand(4, 3)
+          console.log(effectChoices)
+          effectPrices = [Math.round(Math.random()*100)/10, Math.round(Math.random()*100)/10, Math.round(Math.random()*100)/10];
+
+          game.html("<h3> <span id='money' class='label label-success' </span> </h3>");
+          $('#money').html('$'+Math.round(money*10)/10+' M');
+          game.append("<span class='question'> Pick Your Special Effects </span> <br>");
+
+          for(var i=0; i<3; i++){
+            game.append(" \
+                    <div> \
+                      <label class='checkbox' for='checkbox" + i + "'>\
+                        <input type='checkbox' value='' id='checkbox" + i +"' data-toggle='checkbox' class='custom-checkbox'>\
+                            <span class='icons'>\
+                              <span class='icon-unchecked'></span>\
+                              <span class='icon-checked'></span>\
+                            </span>\
+                        " + effects[effectChoices[i]] + "  ($" + effectPrices[i] + " M) \
+                      </label> \
+                    </div");
+          }
+          ads()
+
+        }
+
+      function ads(){
+
+          ads = ["TV Advertising", "Who needs advertising?", "Radio Ads"]
+          adPrices = [10, 0, 3];
+          success = [10, -10, 3];
+
+          game.append("<span class='question'> Pick Your Ad Tactics </span> <br>");
+
+
+          for(var i=3; i<6; i++){
+            game.append(" \
+                    <div> \
+                      <label class='checkbox' for='checkbox" + i + "'>\
+                        <input type='checkbox' id='checkbox" + i +"' data-toggle='checkbox' class='custom-checkbox' onclick=$(\'#checkbox"+i+"\').prop('checked')>\
+                            <span class='icons'>\
+                              <span class='icon-unchecked'></span>\
+                              <span class='icon-checked'></span>\
+                            </span>\
+                        " + ads[i-3] + "  ($" + adPrices[i-3] + " M) \
+                      </label> \
+                    </div");
+          }
+
+          game.append("\
+                  <div style='position:relative;top:50%;bottom:50%;left:40%;right:60%;margin-top:-470px;'>\
+                    <img id='next' src='img/button.png' onclick='finish()'></div>\
+                  </div>");
+      }
+
+      function finish(){
+
+        console.log(successFactor);
+
+          for(var i=0; i<3; i++){
+            if ($('#checkbox'+i).is(':checked')){
+              money -= effectPrices[i]
+            }
+          }
+          console.log(successFactor)
+
+          for(var i=3; i<6; i++){
+            if ($('#checkbox'+i).is(':checked')){
+              money -= adPrices[i-3]
+              successFactor += 2 * success[i-3]
+            }
+          }
+
+          console.log(successFactor)
+
+          game.html("<h3> <span id='money' class='label label-success' </span> </h3>");
+          game.css("background-color","#fcfee9");
+          $('#money').html('$'+Math.round(money*10)/10+' M');
+
+          var profit = Math.round( (Math.random()*successFactor - 20 + money)*10 )/10;
+          console.log(successFactor)
+          var s1;
+          var s2;
+          if(money < 0){
+            s1 = "You were FIRED"
+            s2 = "for going over budget. Try Again?"
+          } else if (profit > 0){
+              s1 = "Profit: $" + profit + " M";
+              s2 = "Not bad, Not Bad. Play again?"
+              if (profit > 30){
+                s1 = "Profit: $" + profit + " M";
+                s2 = "Great work! But can you make even more money? Play again!"
+              }
+          }
+          else{
+            s1 = "Profit: $" + profit + " M"
+            s2 = "Not so great... Better luck next time?"
+          }
+
+         game.append("<br><br>\
+                <div class='jumbotron'>\
+                  <h1>" + s1 + "</h1>\
+                  <p>" + s2 + "</p>\
+                  <p><button class='btn btn-primary btn-lg'onclick='location.reload()'>Play Again</a></p>\
+                </div>")
+
+          if(profit > best){
+                console.log("high score!");
+		        best = profit;
+                firebase.once("value", function(snap){
+                  if(snap.exists()){
+                    obj = {'best':best}
+                    firebase.update(obj, function(o){
+                      if(o){
+                        console.log("failure " + o);
+                      } else{
+                        console.log("high score recorded!");
+                      }
+                    })
+                  }
+                })
+	       }
+
+
+
+      }
+
+      function fixName(name){
+          return name.substring(0, name.length-4);
+        }
+
+      function shuffle(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex ;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+          // Pick a remaining element...
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+
+          // And swap it with the current element.
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+      }
+
+    </script>
+  </body>
+</html>
